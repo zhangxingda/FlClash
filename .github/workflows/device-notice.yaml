@@ -65,9 +65,9 @@ jobs:
             python3 - <<'PYERROR'
           import pathlib
           lines = pathlib.Path('/tmp/flclash-build.log').read_text(errors='replace').splitlines()
-          for line in lines[-100:]:
-              escaped = line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-              print(f'::error title=Android build diagnostic::{escaped}')
+          tail = '\n'.join(lines[-100:])
+          escaped = tail.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print(f'::error title=Android build diagnostic::{escaped}')
           PYERROR
           fi
           exit "$build_status"
