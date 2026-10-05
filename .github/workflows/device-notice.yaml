@@ -57,7 +57,20 @@ jobs:
         env:
           GOMAXPROCS: '4'
           GOFLAGS: '-p=4'
-        run: flutter build apk --release --target-platform android-arm64 --build-number=2026100501
+        run: |
+          set +e
+          flutter build apk --release --target-platform android-arm64 --build-number=2026100501 2>&1 | tee /tmp/flclash-build.log
+          build_status=${PIPESTATUS[0]}
+          if [ "$build_status" -ne 0 ]; then
+            python3 - <<'PYERROR'
+          import pathlib
+          lines = pathlib.Path('/tmp/flclash-build.log').read_text(errors='replace').splitlines()
+          for line in lines[-100:]:
+              escaped = line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print(f'::error title=Android build diagnostic::{escaped}')
+          PYERROR
+          fi
+          exit "$build_status"
       - uses: actions/upload-artifact@v4
         with:
           name: FlClash-Android-Device-Notice-arm64
