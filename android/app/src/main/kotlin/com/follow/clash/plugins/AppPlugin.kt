@@ -127,6 +127,10 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
     override fun onMethodCall(call: MethodCall, rawResult: Result) {
         val result = MainThreadResult(rawResult)
         when (call.method) {
+            "getSubscriptionDeviceInfo" -> reply(result) {
+                SubscriptionDeviceInfo.read(GlobalState.application)
+            }
+
             "moveTaskToBack" -> {
                 activity?.moveTaskToBack(true)
                 result.success(true)

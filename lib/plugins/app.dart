@@ -57,6 +57,12 @@ class App {
         true;
   }
 
+  Future<Map<String, String>?> getSubscriptionDeviceInfo() async {
+    return methodChannel.invokeMapMethod<String, String>(
+      'getSubscriptionDeviceInfo',
+    );
+  }
+
   Future<bool> requestInstalledAppsPermission() async {
     return await methodChannel.invokeMethod<bool>(
           'requestInstalledAppsPermission',

@@ -1,0 +1,65 @@
+name: Build Android Subscription Device Notice APK
+on:
+  push:
+    branches:
+      - feat/subscription-device-notices-20261005
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: core/go.sum
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: plugins/rust_api/rust
+          cache-directories: .dart_tool/hooks_runner
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.4'
+          cache: true
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          link-to-sdk: true
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Install dependencies and check Dart
+        run: |
+          flutter pub get
+          dart format --output=none --set-exit-if-changed lib/common/request.dart lib/common/subscription_device_info.dart lib/plugins/app.dart test/common/subscription_device_info_test.dart
+          flutter analyze --no-fatal-infos
+      - name: Run subscription request tests
+        run: |
+          python3 - <<'PY'
+          import pathlib, subprocess
+          path = pathlib.Path('pubspec.yaml')
+          original = path.read_bytes()
+          try:
+              path.write_bytes(original.replace(b'build_assets: true', b'build_assets: false'))
+              raise SystemExit(subprocess.call(['flutter', 'test', 'test/common/subscription_device_info_test.dart', 'test/common/request_test.dart', '--reporter', 'expanded']))
+          finally:
+              path.write_bytes(original)
+          PY
+      - name: Build Android APK
+        env:
+          GOMAXPROCS: '4'
+          GOFLAGS: '-p=4'
+        run: flutter build apk --release --target-platform android-arm64 --build-number=2026100501
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FlClash-Android-Device-Notice-arm64
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error

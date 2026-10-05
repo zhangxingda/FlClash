@@ -5,10 +5,16 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/common/subscription_device_info.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/state.dart';
 
 class Request {
+  final _subscriptionDeviceInfo = SubscriptionDeviceInfo(
+    isAndroid: Platform.isAndroid,
+    readDevice: () async => app?.getSubscriptionDeviceInfo(),
+  );
   late final Dio dio;
   late final Dio _clashDio;
   String? userAgent;
@@ -41,7 +47,7 @@ class Request {
   Future<Response<Uint8List>> getFileResponseForUrl(String url) async {
     try {
       return await _clashDio.get<Uint8List>(
-        url,
+        await _subscriptionDeviceInfo.forUrl(url),
         options: Options(responseType: ResponseType.bytes),
       );
     } catch (e) {

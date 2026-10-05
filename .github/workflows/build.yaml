@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - '**'
+      - '!feat/subscription-device-notices-20261005'
     tags:
       - 'v*'
   workflow_dispatch:
