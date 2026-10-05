@@ -32,6 +32,7 @@ jobs:
           flutter-version: '3.47.4'
           cache: true
       - uses: nttld/setup-ndk@v1
+        id: android-ndk
         with:
           ndk-version: r28c
           link-to-sdk: true
@@ -55,6 +56,7 @@ jobs:
           PY
       - name: Build Android APK
         env:
+          ANDROID_NDK_HOME: ${{ steps.android-ndk.outputs.ndk-path }}
           GOMAXPROCS: '4'
           GOFLAGS: '-p=4'
         run: |
